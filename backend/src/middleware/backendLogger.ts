@@ -9,17 +9,21 @@ export async function backendLogger(
   const start = Date.now();
   const originalJson = res.json.bind(res);
 
+  // Override res.json
   (res as any).json = (body: any) => {
     const duration = Date.now() - start;
     const haveError = res.statusCode >= 400;
 
+    // userId is optional (undefined allowed)
+    const userId = (req as any).user?.id || null;
+
     prisma.log
       .create({
         data: {
-          message: `${req.method} ${req.originalUrl} (${res.statusCode}) in ${duration}ms`,
+          log: `${req.method} ${req.originalUrl} (${res.statusCode}) in ${duration}ms`,
           haveError,
-          type: 2,
-          userId: req.user?.id,
+          type: 2, // backend log
+          userId,
         },
       })
       .catch(() => {});

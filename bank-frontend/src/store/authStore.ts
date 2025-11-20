@@ -1,10 +1,14 @@
 import { create } from "zustand";
 
-type User = {
+export type User = {
   id: number;
   name: string;
   email: string;
-  role: string;
+  mobile: string;
+  role: "ADMIN" | "USER";
+  status: string;
+  address?: string | null;
+  profilePic?: string | null;
 };
 
 type AuthState = {
@@ -20,6 +24,7 @@ export const useAuthStore = create<AuthState>((set) => ({
   user: null,
   token: null,
   isHydrated: false,
+
   setAuth: (user, token) => {
     if (typeof window !== "undefined") {
       localStorage.setItem("token", token);
@@ -27,6 +32,7 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     set({ user, token, isHydrated: true });
   },
+
   clearAuth: () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("token");
@@ -34,10 +40,12 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
     set({ user: null, token: null, isHydrated: true });
   },
+
   hydrate: () => {
     if (typeof window !== "undefined") {
       const token = localStorage.getItem("token");
       const userString = localStorage.getItem("user");
+
       if (token && userString) {
         try {
           const user = JSON.parse(userString) as User;

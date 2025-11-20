@@ -9,6 +9,7 @@ import authRoutes from "./routes/auth";
 import accountRoutes from "./routes/accounts";
 import transactionRoutes from "./routes/transactions";
 import logRoutes from "./routes/logs";
+
 import { errorHandler } from "./middleware/errorHandler";
 import { backendLogger } from "./middleware/backendLogger";
 
@@ -22,7 +23,7 @@ app.use(cors());
 app.use(express.json());
 app.use(morgan("dev"));
 
-// limit 250 requests/min under /api
+// Global API rate limit (250 req/min)
 const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 250,
@@ -30,15 +31,18 @@ const apiLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-app.use("/api", apiLimiter, backendLogger);
+// Apply rate limit only
+app.use("/api", apiLimiter);
 
-// Routes
+// Public routes (NO backendLogger, NO auth required)
 app.use("/api/auth", authRoutes);
-app.use("/api/accounts", accountRoutes);
-app.use("/api/transactions", transactionRoutes);
-app.use("/api/logs", logRoutes);
 
-// Error handler
+// Protected routes (backendLogger runs AFTER auth)
+app.use("/api/accounts", backendLogger, accountRoutes);
+app.use("/api/transactions", backendLogger, transactionRoutes);
+app.use("/api/logs", backendLogger, logRoutes);
+
+// Global error handler
 app.use(errorHandler);
 
 app.listen(PORT, () => {
