@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import api, { logUiEvent } from "@/lib/api";
@@ -29,6 +29,8 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  const didInitRef = useRef(false);
+
   useEffect(() => {
     hydrate();
   }, [hydrate]);
@@ -46,6 +48,9 @@ export default function DashboardPage() {
       return;
     }
 
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+
     fetchData();
   }, [isHydrated, token, user, router]);
 
@@ -54,9 +59,9 @@ export default function DashboardPage() {
     try {
       const res = await api.get("/transactions/me");
       setData(res.data);
-      await logUiEvent("Loaded user dashboard", false);
+      logUiEvent("Loaded user dashboard", false).catch(() => {});
     } catch (err) {
-      await logUiEvent("Load user dashboard error", true);
+      logUiEvent("Load user dashboard error", true).catch(() => {});
       toast.error("Failed to load dashboard");
     } finally {
       setLoading(false);
@@ -74,13 +79,10 @@ export default function DashboardPage() {
 
   return (
     <div className="w-full max-w-4xl bg-white shadow-lg rounded-xl p-8">
-      {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold">User Dashboard</h1>
-          <p className="text-sm text-slate-500">
-            Welcome, {user?.name}
-          </p>
+          <p className="text-sm text-slate-500">Welcome, {user?.name}</p>
         </div>
         <Button
           type="button"
@@ -92,9 +94,7 @@ export default function DashboardPage() {
       </div>
 
       {loading || !data ? (
-        <div className="text-center text-sm text-slate-500">
-          Loading...
-        </div>
+        <div className="text-center text-sm text-slate-500">Loading...</div>
       ) : (
         <DashboardSummary
           balance={data.balance}

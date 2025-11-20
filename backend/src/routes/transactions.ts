@@ -4,6 +4,9 @@ import { requireAuth, requireRole } from "../middleware/auth";
 
 const router = Router();
 
+/* -------------------------------------------
+   ADMIN — CREDIT
+-------------------------------------------- */
 router.post(
   "/credit",
   requireAuth,
@@ -32,6 +35,9 @@ router.post(
   }
 );
 
+/* -------------------------------------------
+   ADMIN — DEBIT
+-------------------------------------------- */
 router.post(
   "/debit",
   requireAuth,
@@ -74,30 +80,37 @@ router.post(
   }
 );
 
+/* -------------------------------------------
+   USER — GET OWN TRANSACTIONS
+-------------------------------------------- */
 router.get("/me", requireAuth, async (req, res, next) => {
   try {
-    if (!req.user) return res.status(401).json({ message: "Unauthorized" });
+    if (!req.user)
+      return res.status(401).json({ message: "Unauthorized" });
 
     const account = await prisma.account.findUnique({
       where: { userId: req.user.id },
       include: { transactions: true },
     });
 
+    // SAFE FALLBACK — Prevents 404 spam
     if (!account) {
-      return res.status(404).json({ message: "Account not found" });
+      return res.json({
+        balance: 0,
+        debitHistory: [],
+        creditHistory: [],
+      });
     }
 
-    const { transactions } = account;
-
-    const debitHistory = transactions.filter(
+    const debitHistory = account.transactions.filter(
       (tx) => tx.type === "DEBIT"
     );
 
-    const creditHistory = transactions.filter(
+    const creditHistory = account.transactions.filter(
       (tx) => tx.type === "CREDIT"
     );
 
-    res.json({
+    return res.json({
       balance: account.balance,
       debitHistory,
       creditHistory,

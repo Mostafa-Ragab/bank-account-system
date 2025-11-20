@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import api, { logUiEvent } from "@/lib/api";
@@ -33,6 +33,8 @@ export default function AdminPage() {
     null
   );
 
+  const didInitRef = useRef(false);
+
   useEffect(() => {
     hydrate();
   }, [hydrate]);
@@ -50,6 +52,9 @@ export default function AdminPage() {
       return;
     }
 
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+
     fetchAccounts();
   }, [isHydrated, token, user, router]);
 
@@ -60,14 +65,13 @@ export default function AdminPage() {
       const list: Account[] = res.data;
       setAccounts(list);
 
-      // لو لسه مفيش selected account، خليه أول واحد
       if (!selectedAccountId && list.length > 0) {
         setSelectedAccountId(list[0].id);
       }
 
-      await logUiEvent("Loaded admin accounts", false);
+      logUiEvent("Loaded admin accounts", false).catch(() => {});
     } catch (err) {
-      await logUiEvent("Load admin accounts error", true);
+      logUiEvent("Load admin accounts error", true).catch(() => {});
       toast.error("Failed to load accounts");
     } finally {
       setLoadingAccounts(false);
@@ -83,7 +87,7 @@ export default function AdminPage() {
     e.preventDefault();
     setCreating(true);
     try {
-      const res = await api.post("/accounts", {
+      await api.post("/accounts", {
         name: newName,
         email: newEmail,
         mobile: newMobile,
@@ -95,13 +99,12 @@ export default function AdminPage() {
       setNewMobile("");
       setNewProfilePic("");
 
-      await logUiEvent("Admin created account", false);
+      logUiEvent("Admin created account", false).catch(() => {});
       toast.success("Account created");
 
-      // نحدِّث الليست من الـ API عشان نضمن التناسق
       await fetchAccounts();
     } catch (err: any) {
-      await logUiEvent("Admin create account error", true);
+      logUiEvent("Admin create account error", true).catch(() => {});
       const message =
         err?.response?.data?.message || "Failed to create account";
       toast.error(message);
@@ -117,11 +120,11 @@ export default function AdminPage() {
         accountId,
         amount,
       });
-      await logUiEvent("Admin credited account", false);
+      logUiEvent("Admin credited account", false).catch(() => {});
       toast.success("Credit transaction successful");
       await fetchAccounts();
     } catch (err) {
-      await logUiEvent("Admin credit transaction error", true);
+      logUiEvent("Admin credit transaction error", true).catch(() => {});
       toast.error("Failed to credit account");
     } finally {
       setCrediting(false);
@@ -135,11 +138,11 @@ export default function AdminPage() {
         accountId,
         amount,
       });
-      await logUiEvent("Admin debited account", false);
+      logUiEvent("Admin debited account", false).catch(() => {});
       toast.success("Debit transaction successful");
       await fetchAccounts();
     } catch (err: any) {
-      await logUiEvent("Admin debit transaction error", true);
+      logUiEvent("Admin debit transaction error", true).catch(() => {});
       const message =
         err?.response?.data?.message || "Failed to debit account";
       toast.error(message);
@@ -154,13 +157,10 @@ export default function AdminPage() {
 
   return (
     <div className="w-full max-w-6xl bg-white shadow-lg rounded-xl p-8">
-      {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold">Admin Panel</h1>
-          <p className="text-sm text-slate-500">
-            Logged in as {user?.name}
-          </p>
+          <p className="text-sm text-slate-500">Logged in as {user?.name}</p>
         </div>
         <Button
           type="button"
@@ -172,9 +172,7 @@ export default function AdminPage() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* LEFT COLUMN: Create + Transactions */}
         <div className="lg:col-span-1 space-y-8">
-          {/* CREATE NEW ACCOUNT */}
           <div>
             <h2 className="text-sm font-semibold mb-2">Create New Account</h2>
             <form onSubmit={handleCreateAccount} className="space-y-3">
@@ -221,7 +219,6 @@ export default function AdminPage() {
             </form>
           </div>
 
-          {/* TRANSACTIONS */}
           <div>
             <h2 className="text-sm font-semibold mb-2">Transactions</h2>
             <TransactionForm
@@ -236,7 +233,6 @@ export default function AdminPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Account List */}
         <div className="lg:col-span-2">
           <AccountList
             accounts={accounts}
