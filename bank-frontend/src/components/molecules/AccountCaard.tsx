@@ -23,7 +23,7 @@ type AccountCardProps = {
   account: Account;
   isSelected?: boolean;
   onClick?: () => void;
-  actions?: ReactNode;
+  actions?: ReactNode; // multiple buttons supported
 };
 
 export function AccountCard({
@@ -32,20 +32,23 @@ export function AccountCard({
   onClick,
   actions
 }: AccountCardProps) {
-  const disabled = !!actions; // disables click while buttons exist
 
   return (
     <div
-      onClick={!disabled ? onClick : undefined}
+      onClick={onClick}
       className={cn(
-        "border rounded-lg p-3 flex items-start justify-between gap-3 text-sm",
-        disabled ? "cursor-default" : "cursor-pointer",
+        "border rounded-lg p-3 flex items-start justify-between gap-3 text-sm cursor-pointer",
         "hover:bg-slate-50 transition",
-        isSelected ? "border-blue-500 bg-blue-50/40" : "border-slate-200 bg-white"
+        isSelected
+          ? "border-blue-500 bg-blue-50/40"
+          : "border-slate-200 bg-white"
       )}
     >
+      {/* LEFT SIDE */}
       <div className="space-y-1">
-        <div className="font-semibold text-slate-800">{account.user.name}</div>
+        <div className="font-semibold text-slate-800">
+          {account.user.name}
+        </div>
 
         <div className="text-xs text-slate-500">{account.user.email}</div>
         <div className="text-xs text-slate-500">{account.user.mobile}</div>
@@ -56,6 +59,7 @@ export function AccountCard({
         </div>
       </div>
 
+      {/* RIGHT SIDE */}
       <div className="flex flex-col items-end gap-1 text-right">
         <div className="text-xs uppercase tracking-wide text-slate-500">
           Balance
@@ -76,7 +80,12 @@ export function AccountCard({
           {account.user.status}
         </span>
 
-        {actions ? <div className="mt-2 flex">{actions}</div> : null}
+        {/* ACTION BUTTONS */}
+        {actions ? (
+          <div className="mt-2 flex gap-2">
+            {actions}
+          </div>
+        ) : null}
       </div>
     </div>
   );

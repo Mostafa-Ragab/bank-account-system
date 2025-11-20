@@ -14,15 +14,14 @@ export async function backendLogger(
     const duration = Date.now() - start;
     const haveError = res.statusCode >= 400;
 
-    // userId is optional (undefined allowed)
     const userId = (req as any).user?.id || null;
 
     prisma.log
       .create({
         data: {
-          log: `${req.method} ${req.originalUrl} (${res.statusCode}) in ${duration}ms`,
+          message: `${req.method} ${req.originalUrl} (${res.statusCode}) in ${duration}ms`,
           haveError,
-          type: 2, // backend log
+          type: 2, // backend REST API
           userId,
         },
       })

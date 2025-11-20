@@ -5,14 +5,18 @@ const router = Router();
 
 router.post("/", async (req, res, next) => {
   try {
-    const { log, haveError, userId, type } = req.body;
+    const { message, haveError, userId, type } = req.body;
+
+    if (!message) {
+      return res.status(400).json({ message: "Log 'message' is required" });
+    }
 
     const entry = await prisma.log.create({
       data: {
-        log,
-        haveError,
-        userId: userId || null,
-        type,
+        message,
+        haveError: !!haveError,
+        type: typeof type === "number" ? type : 1, // 1 = Web UI
+        userId: userId ?? null,
       },
     });
 

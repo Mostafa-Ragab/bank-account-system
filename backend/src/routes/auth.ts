@@ -10,9 +10,17 @@ if (!JWT_SECRET) {
   throw new Error("JWT_SECRET is not defined in environment variables");
 }
 
-// ========================
-// POST /api/auth/register
-// ========================
+// ----------------------------------------------------
+// Helper: Generate Account Number
+// ----------------------------------------------------
+function generateAccountNo(userId: number) {
+  return `ACCT-${userId}-${Date.now()}`;
+}
+
+// ====================================================
+// POST /api/auth/register  → User self-registration
+// Creates user + auto account (status INACTIVE)
+// ====================================================
 router.post("/register", async (req, res, next) => {
   try {
     const { name, email, mobile, password, profilePic } = req.body;
@@ -26,8 +34,10 @@ router.post("/register", async (req, res, next) => {
       return res.status(400).json({ message: "Email already registered" });
     }
 
+    // Hash password
     const hashed = await bcrypt.hash(password, 10);
 
+    // Create user (status INACTIVE until admin activates)
     const user = await prisma.user.create({
       data: {
         name,
@@ -36,7 +46,16 @@ router.post("/register", async (req, res, next) => {
         password: hashed,
         profilePic: profilePic || null,
         role: "USER",
-        status: "INACTIVE", // default INACTIVE as per task
+        status: "INACTIVE",
+      },
+    });
+
+    // Create account linked to user
+    const account = await prisma.account.create({
+      data: {
+        userId: user.id,
+        balance: 0,
+        accountNo: generateAccountNo(user.id),
       },
     });
 
@@ -49,21 +68,27 @@ router.post("/register", async (req, res, next) => {
         email: user.email,
         status: user.status,
       },
+      account: {
+        id: account.id,
+        accountNo: account.accountNo,
+      },
     });
   } catch (err) {
     next(err);
   }
 });
 
-// ========================
+// ====================================================
 // POST /api/auth/login
-// ========================
+// ====================================================
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required" });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required" });
     }
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -77,11 +102,12 @@ router.post("/login", async (req, res, next) => {
     }
 
     if (user.status !== "ACTIVE") {
-      return res
-        .status(403)
-        .json({ message: "Your account is not active. Please contact admin." });
+      return res.status(403).json({
+        message: "Your account is not active. Please contact admin.",
+      });
     }
 
+    // Issue JWT
     const token = jwt.sign(
       { id: user.id, role: user.role },
       JWT_SECRET,
@@ -96,6 +122,7 @@ router.post("/login", async (req, res, next) => {
         email: user.email,
         role: user.role,
         status: user.status,
+        profilePic: user.profilePic,
       },
     });
   } catch (err) {
