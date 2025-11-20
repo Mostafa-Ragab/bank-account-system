@@ -29,6 +29,7 @@ export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Prevent repeated API calls
   const didInitRef = useRef(false);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ export default function DashboardPage() {
     try {
       const res = await api.get("/transactions/me");
       setData(res.data);
+
       logUiEvent("Loaded user dashboard", false).catch(() => {});
     } catch (err) {
       logUiEvent("Load user dashboard error", true).catch(() => {});
@@ -73,24 +75,36 @@ export default function DashboardPage() {
     router.replace("/");
   }
 
-  if (!isHydrated) {
-    return null;
-  }
+  if (!isHydrated) return null;
 
   return (
     <div className="w-full max-w-4xl bg-white shadow-lg rounded-xl p-8">
+      {/* HEADER */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-semibold">User Dashboard</h1>
           <p className="text-sm text-slate-500">Welcome, {user?.name}</p>
         </div>
-        <Button
-          type="button"
-          onClick={handleLogout}
-          className="h-8 px-3 bg-white text-slate-800 border border-slate-300 hover:bg-slate-50"
-        >
-          Logout
-        </Button>
+
+        <div className="flex items-center gap-2">
+          {/* Go to Profile */}
+          <Button
+            type="button"
+            onClick={() => router.push("/profile")}
+            className="h-8 px-3 bg-white text-slate-800 border border-slate-300 hover:bg-slate-50"
+          >
+            Profile
+          </Button>
+
+          {/* Logout */}
+          <Button
+            type="button"
+            onClick={handleLogout}
+            className="h-8 px-3 bg-white text-slate-800 border border-slate-300 hover:bg-slate-50"
+          >
+            Logout
+          </Button>
+        </div>
       </div>
 
       {loading || !data ? (

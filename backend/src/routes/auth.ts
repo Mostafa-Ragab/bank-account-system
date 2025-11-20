@@ -4,11 +4,22 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../prisma";
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
 
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  throw new Error("JWT_SECRET is not defined in environment variables");
+}
+
+// ========================
+// POST /api/auth/register
+// ========================
 router.post("/register", async (req, res, next) => {
   try {
     const { name, email, mobile, password, profilePic } = req.body;
+
+    if (!name || !email || !mobile || !password) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
@@ -23,30 +34,52 @@ router.post("/register", async (req, res, next) => {
         email,
         mobile,
         password: hashed,
-        profilePic,
+        profilePic: profilePic || null,
         role: "USER",
-        status: "INACTIVE",
+        status: "INACTIVE", // default INACTIVE as per task
       },
     });
 
-    res.status(201).json({ id: user.id, email: user.email });
+    return res.status(201).json({
+      message:
+        "Registered successfully. Your account is inactive until admin activation.",
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        status: user.status,
+      },
+    });
   } catch (err) {
     next(err);
   }
 });
 
+// ========================
+// POST /api/auth/login
+// ========================
 router.post("/login", async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
+
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) {
+    if (!user || !user.password) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    const match = await bcrypt.compare(password, user.password);
-    if (!match) {
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) {
       return res.status(401).json({ message: "Invalid credentials" });
+    }
+
+    if (user.status !== "ACTIVE") {
+      return res
+        .status(403)
+        .json({ message: "Your account is not active. Please contact admin." });
     }
 
     const token = jwt.sign(
@@ -55,13 +88,14 @@ router.post("/login", async (req, res, next) => {
       { expiresIn: "1d" }
     );
 
-    res.json({
+    return res.json({
       token,
       user: {
         id: user.id,
         name: user.name,
         email: user.email,
         role: user.role,
+        status: user.status,
       },
     });
   } catch (err) {

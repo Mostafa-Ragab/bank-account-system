@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { Toaster } from "react-hot-toast";
+import { Navbar } from "@/components/layout/Navbar";
 
 export const metadata: Metadata = {
   title: "Bank Account System",
@@ -16,6 +17,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-slate-100 text-slate-900 flex items-center justify-center p-4">
         <Toaster position="top-right" />
+                <Navbar />
+
         <main className="w-full flex items-center justify-center">
           {children}
         </main>

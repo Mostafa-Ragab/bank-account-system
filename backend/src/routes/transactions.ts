@@ -4,9 +4,7 @@ import { requireAuth, requireRole } from "../middleware/auth";
 
 const router = Router();
 
-/* -------------------------------------------
-   ADMIN — CREDIT
--------------------------------------------- */
+
 router.post(
   "/credit",
   requireAuth,

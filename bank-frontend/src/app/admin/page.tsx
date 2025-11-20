@@ -151,6 +151,30 @@ export default function AdminPage() {
     }
   }
 
+  async function handleActivate(userId: number) {
+    try {
+      await api.patch(`/accounts/activate/${userId}`);
+      toast.success("User activated");
+      logUiEvent("Admin activated user", false).catch(() => {});
+      await fetchAccounts();
+    } catch (err) {
+      logUiEvent("Admin activate user error", true).catch(() => {});
+      toast.error("Activation failed");
+    }
+  }
+
+  async function handleDeactivate(userId: number) {
+    try {
+      await api.patch(`/accounts/deactivate/${userId}`);
+      toast.success("User deactivated");
+      logUiEvent("Admin deactivated user", false).catch(() => {});
+      await fetchAccounts();
+    } catch (err) {
+      logUiEvent("Admin deactivate user error", true).catch(() => {});
+      toast.error("Deactivation failed");
+    }
+  }
+
   if (!isHydrated) {
     return null;
   }
@@ -240,6 +264,8 @@ export default function AdminPage() {
             selectedAccountId={selectedAccountId ?? undefined}
             onSelectAccount={(acc) => setSelectedAccountId(acc.id)}
             onRefresh={fetchAccounts}
+            onActivate={handleActivate}
+            onDeactivate={handleDeactivate}
           />
         </div>
       </div>
