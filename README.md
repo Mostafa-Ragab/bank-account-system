@@ -164,7 +164,7 @@ http://localhost:3000
 🔐 Default Admin Credentials
 Email
 Password
-admin@admin.com
+admin@bank.com
 Admin@123
 
 📝 Notes
