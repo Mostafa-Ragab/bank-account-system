@@ -5,10 +5,10 @@ import { Toaster } from "react-hot-toast";
 export function AppToaster() {
   return (
     <Toaster
-      position="top-right"
+      position="top-center"
       gutter={12}
       toastOptions={{
-        duration: 1000,
+        duration: 2000,
         style: {
           background: "#ffffff",
           color: "#0f172a",
