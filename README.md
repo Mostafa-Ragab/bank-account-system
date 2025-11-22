@@ -123,7 +123,7 @@ Run:
 
 ## 🔐 Default Admin Credentials
 
-Email: admin@admin.com\
+Email: admin@bank.com\
 Password: Admin@123
 
 ## 👨‍💻 Author
