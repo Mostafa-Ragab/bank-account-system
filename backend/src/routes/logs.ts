@@ -7,20 +7,26 @@ router.post("/", async (req, res, next) => {
   try {
     const { message, haveError, userId, type } = req.body;
 
-    if (!message) {
-      return res.status(400).json({ message: "Log 'message' is required" });
+    if (!message || typeof message !== "string") {
+      return res.status(400).json({ message: "Invalid log message" });
     }
+
+    const finalType =
+      type === 1 || type === 2 ? type : 1;
+
+    const uid =
+      typeof userId === "number" ? userId : null;
 
     const entry = await prisma.log.create({
       data: {
         message,
         haveError: !!haveError,
-        type: typeof type === "number" ? type : 1, // 1 = Web UI
-        userId: userId ?? null,
+        type: finalType,
+        userId: uid
       },
     });
 
-    res.status(201).json(entry);
+    return res.status(201).json(entry);
   } catch (err) {
     next(err);
   }

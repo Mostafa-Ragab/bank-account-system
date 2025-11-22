@@ -16,7 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen bg-slate-100 text-slate-900 flex items-center justify-center p-4">
-                <AppToaster />
+              <AppToaster />
 
              <Navbar />
 

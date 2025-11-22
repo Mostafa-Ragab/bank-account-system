@@ -31,14 +31,43 @@ export function ProfileForm({ initial, onSubmit, loading }: Props) {
 
   return (
     <form onSubmit={handleSave} className="space-y-5">
-      <div className="space-y-1">
-        <Label>Full Name</Label>
-        <Input value={name} onChange={(e) => setName(e.target.value)} required />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label>Full Name</Label>
+          <Input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label>Email</Label>
+          <Input
+            value={initial.email}
+            disabled
+            className="bg-slate-100 cursor-not-allowed"
+          />
+        </div>
       </div>
 
-      <div className="space-y-1">
-        <Label>Address</Label>
-        <Input value={address} onChange={(e) => setAddress(e.target.value)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-1">
+          <Label>Mobile</Label>
+          <Input
+            value={initial.mobile}
+            disabled
+            className="bg-slate-100 cursor-not-allowed"
+          />
+        </div>
+
+        <div className="space-y-1">
+          <Label>Address</Label>
+          <Input
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+          />
+        </div>
       </div>
 
       <div className="space-y-1">
@@ -50,7 +79,7 @@ export function ProfileForm({ initial, onSubmit, loading }: Props) {
         />
       </div>
 
-      <Button type="submit" loading={loading} className="w-full">
+      <Button type="submit" loading={loading} className="w-full mt-2">
         Save Changes
       </Button>
     </form>

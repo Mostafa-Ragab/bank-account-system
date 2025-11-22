@@ -9,6 +9,8 @@ type AccountUser = {
   email: string;
   mobile: string;
   status: string;
+   address?: string | null;
+  profilePic?: string | null;
 };
 
 export type Account = {

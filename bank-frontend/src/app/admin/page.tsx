@@ -29,27 +29,43 @@ type CreateAccountResponse = {
   tempPassword: string;
 };
 
+type ApiError = {
+  response?: {
+    data?: {
+      message?: string;
+    };
+  };
+};
+
 export default function AdminPage() {
   const router = useRouter();
   const { user, token, hydrate, isHydrated } = useAuthStore();
 
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [loadingAccounts, setLoadingAccounts] = useState<boolean>(true);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
 
-  const [creating, setCreating] = useState<boolean>(false);
-  const [crediting, setCrediting] = useState<boolean>(false);
-  const [debiting, setDebiting] = useState<boolean>(false);
+  const [creating, setCreating] = useState(false);
+  const [crediting, setCrediting] = useState(false);
+  const [debiting, setDebiting] = useState(false);
 
-  const [newName, setNewName] = useState<string>("");
-  const [newEmail, setNewEmail] = useState<string>("");
-  const [newMobile, setNewMobile] = useState<string>("");
-  const [newProfilePic, setNewProfilePic] = useState<string>("");
+  const [newName, setNewName] = useState("");
+  const [newEmail, setNewEmail] = useState("");
+  const [newMobile, setNewMobile] = useState("");
+  const [newProfilePic, setNewProfilePic] = useState("");
 
   const [selectedAccountId, setSelectedAccountId] = useState<number | null>(
     null
   );
 
-  const didInitRef = useRef<boolean>(false);
+  const [editName, setEditName] = useState("");
+  const [editMobile, setEditMobile] = useState("");
+  const [editAddress, setEditAddress] = useState("");
+  const [editStatus, setEditStatus] = useState("ACTIVE");
+
+  const [updatingUser, setUpdatingUser] = useState(false);
+  const [deletingUser, setDeletingUser] = useState(false);
+
+  const didInitRef = useRef(false);
 
   useEffect(() => {
     hydrate();
@@ -73,6 +89,16 @@ export default function AdminPage() {
 
     fetchAccounts();
   }, [isHydrated, token, user, router]);
+
+  useEffect(() => {
+    if (!selectedAccountId) return;
+    const acc = accounts.find((a) => a.id === selectedAccountId);
+    if (!acc) return;
+    setEditName(acc.user.name ?? "");
+    setEditMobile(acc.user.mobile ?? "");
+    setEditAddress(acc.user.address ?? "");
+    setEditStatus(acc.user.status ?? "ACTIVE");
+  }, [selectedAccountId, accounts]);
 
   async function fetchAccounts(): Promise<void> {
     setLoadingAccounts(true);
@@ -122,7 +148,7 @@ export default function AdminPage() {
         (t) => (
           <div className="flex flex-col gap-3">
             <p className="font-semibold text-slate-900">
-              ✅ Account created successfully
+              Account created successfully
             </p>
 
             <p className="text-sm">
@@ -159,8 +185,8 @@ export default function AdminPage() {
 
       fetchAccounts();
     } catch (err: unknown) {
-      const message =
-        (err as any)?.response?.data?.message || "Failed to create account";
+      const e = err as ApiError;
+      const message = e.response?.data?.message || "Failed to create account";
       toast.error(message);
       logUiEvent("Admin create account error", true);
     } finally {
@@ -191,11 +217,26 @@ export default function AdminPage() {
     setDebiting(true);
     try {
       await api.post("/transactions/debit", { accountId, amount });
-      toast.success("Debit successful");
+      toast(
+        () => (
+          <div className="text-sm">
+            <p className="font-semibold">Debit successful</p>
+          </div>
+        ),
+        {
+          style: {
+            background: "#fef3c7",
+            color: "#92400e",
+            border: "1px solid #facc15",
+          },
+          icon: "💸",
+          duration: 4000,
+        }
+      );
       fetchAccounts();
     } catch (err: unknown) {
-      const message =
-        (err as any)?.response?.data?.message || "Failed to debit";
+      const e = err as ApiError;
+      const message = e.response?.data?.message || "Failed to debit";
       toast.error(message);
     } finally {
       setDebiting(false);
@@ -222,14 +263,63 @@ export default function AdminPage() {
     }
   }
 
+  async function handleUpdateUser(): Promise<void> {
+    if (!selectedAccountId) return;
+    const acc = accounts.find((a) => a.id === selectedAccountId);
+    if (!acc) return;
+    const userId = acc.user.id;
+    setUpdatingUser(true);
+    try {
+      await api.put(`/accounts/${userId}`, {
+        name: editName,
+        mobile: editMobile,
+        address: editAddress,
+        status: editStatus,
+      });
+      toast.success("User updated");
+      fetchAccounts();
+    } catch {
+      toast.error("Failed to update user");
+    } finally {
+      setUpdatingUser(false);
+    }
+  }
+
+  async function handleDeleteUser(): Promise<void> {
+    if (!selectedAccountId) return;
+    const acc = accounts.find((a) => a.id === selectedAccountId);
+    if (!acc) return;
+    const userId = acc.user.id;
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this user and account?"
+    );
+    if (!confirmed) return;
+    setDeletingUser(true);
+    try {
+      await api.delete(`/accounts/${userId}`);
+      toast.success("User and account deleted");
+      setSelectedAccountId(null);
+      fetchAccounts();
+    } catch {
+      toast.error("Failed to delete user");
+    } finally {
+      setDeletingUser(false);
+    }
+  }
+
   if (!isHydrated) return null;
+
+  const selectedAccount =
+    selectedAccountId != null
+      ? accounts.find((a) => a.id === selectedAccountId) ?? null
+      : null;
 
   return (
     <div className="w-full max-w-7xl mx-auto mt-20 p-6">
-      <header className="mb-10">
+      <header className="mb-10 flex flex-col gap-1">
         <h1 className="text-3xl font-bold text-slate-800">Admin Dashboard</h1>
-        <p className="text-sm text-slate-500 mt-1">
-          Manage users, accounts, and transactions
+        <p className="text-sm text-slate-500">
+          Manage users, accounts, transactions, and account status.
         </p>
       </header>
 
@@ -300,8 +390,11 @@ export default function AdminPage() {
           </section>
         </aside>
 
-        <main className="lg:col-span-2">
+        <main className="lg:col-span-2 space-y-8">
           <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="font-semibold text-slate-700 mb-4 text-base">
+              Accounts
+            </h2>
             <AccountList
               accounts={accounts}
               loading={loadingAccounts}
@@ -311,6 +404,94 @@ export default function AdminPage() {
               onActivate={handleActivate}
               onDeactivate={handleDeactivate}
             />
+          </section>
+
+          <section className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="font-semibold text-slate-700 mb-1 text-base">
+              Edit Selected User
+            </h2>
+            <p className="text-xs text-slate-500 mb-4">
+              Update user information and status. Email and account number
+              cannot be modified.
+            </p>
+
+            {!selectedAccount ? (
+              <p className="text-sm text-slate-500">
+                Select an account from the list above to edit user info.
+              </p>
+            ) : (
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Name</Label>
+                    <Input
+                      value={editName}
+                      onChange={(e) => setEditName(e.target.value)}
+                    />
+                  </div>
+
+                  <div>
+                    <Label>Mobile</Label>
+                    <Input
+                      value={editMobile}
+                      onChange={(e) => setEditMobile(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label>Address</Label>
+                  <Input
+                    value={editAddress}
+                    onChange={(e) => setEditAddress(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <Label>Status</Label>
+                    <select
+                      className="border rounded-md px-3 py-2 w-full text-sm"
+                      value={editStatus}
+                      onChange={(e) => setEditStatus(e.target.value)}
+                    >
+                      <option value="ACTIVE">ACTIVE</option>
+                      <option value="INACTIVE">INACTIVE</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <Label>Email</Label>
+                    <Input
+                      value={selectedAccount.user.email}
+                      disabled
+                      className="bg-slate-100"
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row gap-3 pt-2">
+                  <Button
+                    type="button"
+                    loading={updatingUser}
+                    className="flex-1"
+                    onClick={handleUpdateUser}
+                    disabled={!selectedAccount}
+                  >
+                    Save Changes
+                  </Button>
+                  <Button
+                    type="button"
+                    loading={deletingUser}
+                    className="flex-1 bg-red-600 hover:bg-red-700"
+                    onClick={handleDeleteUser}
+                    disabled={!selectedAccount}
+                  >
+                    Delete User
+                  </Button>
+                </div>
+              </div>
+            )}
           </section>
         </main>
       </div>

@@ -91,19 +91,13 @@ export default function DashboardPage() {
           <Button
             type="button"
             onClick={() => router.push("/profile")}
-            className="h-8 px-3 bg-white text-slate-800 border border-slate-300 hover:bg-slate-50"
+            className="h-8 px-3  bg-white text-slate-800 border border-slate-300 hover:bg-slate-50"
           >
             Profile
           </Button>
 
-          {/* Logout */}
-          <Button
-            type="button"
-            onClick={handleLogout}
-            className="h-8 px-3 bg-white text-slate-800 border border-slate-300 hover:bg-slate-50"
-          >
-            Logout
-          </Button>
+     
+        
         </div>
       </div>
 
