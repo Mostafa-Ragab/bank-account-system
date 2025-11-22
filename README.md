@@ -1,182 +1,132 @@
-# Bank Account Management System  
-Full-Stack Take-Home Assignment — Frontend + Backend
+# Bank Account Management System
 
-This project implements a complete **Bank Account Management System** as required in the technical task.  
-It includes a full **React/Next.js frontend**, **Node.js (Express) backend**, **Prisma ORM**, logging system, authentication, authorization, account management, and transaction flows.
+Full-Stack Assessment --- **Next.js + Node.js + Prisma**
 
----
+This project implements a complete **Bank Account Management System** as
+requested in the assignment.\
+It includes a full **React/Next.js frontend**, **Express backend**,
+**Prisma ORM**, authentication, authorization, account/transaction
+flows, and a full logging system.
 
 ## 🚀 Tech Stack
 
-### **Frontend**
-- Next.js (App Router)
-- React.js
-- TypeScript
-- Tailwind CSS
-- Zustand (state management)
-- Axios (API handling)
-- React Hot Toast / Toastify (notifications)
+### Frontend
 
-### **Backend**
-- Node.js (Express)
-- Prisma ORM
-- SQLite DB (simple for assignment)
-- bcryptjs (password hashing)
-- jsonwebtoken (JWT auth)
-- express-rate-limit
-- Helmet, CORS, Morgan
-- Custom logging middleware
+-   Next.js (App Router)
+-   React + TypeScript
+-   Tailwind CSS
+-   Zustand
+-   Axios
+-   React Hot Toast
 
----
+### Backend
 
-## 🔐 Features & Requirements — Implemented 100%
+-   Node.js (Express)
+-   Prisma ORM
+-   SQLite
+-   JWT Authentication
+-   bcryptjs
+-   express-rate-limit
+-   Helmet, CORS
+-   Custom Logging Middleware
 
-### **1. Authentication**
-- User registration → status = **INACTIVE** by default
-- Admin & User login
-- JWT-based authentication
-- Logout
-- Auto-create bank account for new users
-- Admin-created users get temporary auto-generated password
+## ✅ Features & Requirements (100% Completed)
 
----
+### 1. Authentication
 
-### **2. Account Management**
+-   User registration → INACTIVE by default
+-   Admin & User login
+-   JWT-based auth
+-   Auto-create account for users
+-   Admin-created users receive temporary generated password
+
+### 2. Account Management
+
 #### Admin
-- Create new accounts (name, email, mobile, profile picture)
-- User created by admin → **ACTIVE**
-- Auto-generated password returned to admin
-- Update user info (name, mobile, address, status)
-- Activate / Deactivate user
-- Delete user + account + transactions
-- View all accounts
+
+-   Create new users/accounts
+-   Update user info (name, mobile, address, status)
+-   Activate/Deactivate users
+-   Delete user + account + transactions
+-   View all accounts
 
 #### User
-- Update profile (name, address, avatar)
-- Cannot modify (email, mobile, account number)
 
----
+-   Update: name, address, profile picture
+-   Cannot update: email, mobile, account number
 
-### **3. Account Display**
-- Admin → List all accounts
-- User → View personal account details
+### 3. Account Display
 
----
+-   Admin → list all accounts
+-   User → view own account details
 
-### **4. Transactions**
-#### User Dashboard:
-- View **current balance**
-- View **credit / debit history**
+### 4. Transactions System
 
-#### Admin:
-- Credit any account  
-- Debit any account  
-- Validate insufficient balance (error toast)
+#### User
 
----
+-   View balance
+-   View credit/debit history
 
-### **5. Notifications**
-- Green toast → credit  
-- Yellow toast → debit   
-- Red toast → errors  
-- Modern UI toast system
+#### Admin
 
----
+-   Credit/debit transactions
+-   Insufficient balance validation
 
-### **6. Logging (UI + Backend)**
-Stored in DB (Log table):
-- `message`
-- `userId`
-- `haveError`
-- `type` (1 = UI log, 2 = Backend API)
-- `createdAt`
+### 5. Notifications
 
----
+-   Green toast → credit
+-   Yellow toast → debit
+-   Red toast → error
 
-### **7. Performance**
-- express-rate-limit → 250 requests/minute  
-- Backend logger enabled
+### 6. Logging System
 
----
+Stored in DB: - message - userId - haveError - type (1 = UI, 2 =
+Backend) - createdAt
 
-## 🏗️ Folder Structure
-/frontend
-/app
-/components
-/store
-/lib
-/public
-README.md
+### 7. Performance
 
-/backend
-/src
-/routes
-/middleware
-/prisma
-server.ts
-prisma/schema.prisma
-README.md
----
+-   express-rate-limit → 250 RPM
+-   Helmet enabled
 
-# 🛠️ **How to Run the Project (Local Setup)**
+## 🛠️ Setup
 
-## 1️⃣ Clone the repo
-```sh
-git clone https://github.com/Mostafa-Ragab/bank-account-system.git
-cd bank-account-system
+### Backend
 
-🔧 Backend Setup (Node.js + Prisma + SQLite)
+    cd backend
+    npm install
 
-1. Install dependencies
-cd backend
-npm install
-2. Create .env
-DATABASE_URL="file:./dev.db"
-JWT_SECRET="your-secret-key"
+Create `.env`:
 
-3. Migrate DB
-npx prisma migrate dev
+    DATABASE_URL="file:./dev.db"
+    JWT_SECRET="your-secret-key"
 
-4. Seed Admin User (optional)
-backend/src/prisma/seedAdmin.ts
-npm run seed
+Migrate:
 
-Start backend
-npm run dev
-Backend running at:
-http://localhost:4000
+    npx prisma migrate dev
 
+Run:
 
+    npm run dev
 
-🎨 Frontend Setup (Next.js)
+### Frontend
 
-1. Install dependencies
-cd frontend
-npm install
-2. env.local
-NEXT_PUBLIC_API_URL=http://localhost:4000/api
+    cd frontend
+    npm install
 
-3. Run development server
-npm run dev
-Frontend running at:
-http://localhost:3000
+Create `.env.local`:
 
-🔐 Default Admin Credentials
-Email
-Password
-admin@bank.com
-Admin@123
+    NEXT_PUBLIC_API_URL=http://localhost:4000/api
 
-📝 Notes
-	•	All APIs protected by JWT middleware
-	•	UI and backend logs stored in DB
-	•	Fully typed TypeScript codebase
-	•	Admin dashboard + user dashboard fully implemented
-	•	Modern responsive UI following design system (atoms/molecules/organisms)
+Run:
 
+    npm run dev
 
+## 🔐 Default Admin Credentials
 
+Email: admin@admin.com\
+Password: Admin@123
 
+## 👨‍💻 Author
 
-Mostafa Ragab
+**Mostafa Ragab**\
 LinkedIn: https://www.linkedin.com/in/mostafa-raslan
